@@ -4,3 +4,5 @@ GET {{Carden.Api_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
+GET http://localhost:5209/user
+Accept: application/json

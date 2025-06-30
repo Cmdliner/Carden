@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Carden.Api.Models;
+namespace Carden.Api.Entities;
 
 public class User
 {
@@ -18,9 +18,13 @@ public class User
     public required string FullName { get; set; }
     public string? Username { get; set; }
     
+    public required string PasswordHash { get; set; }
+    
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime? LastLogin { get; set; }
+    public DateTime? LastLogin { get; set; } = null;
+
+    public DateTime? DeletedAt { get; set; } = null;
     // public string? ProfileImgUrl { get; set; }
 
 }

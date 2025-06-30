@@ -1,0 +1,50 @@
+﻿using Carden.Api.Data;
+using Carden.Api.Entities;
+using Carden.Api.Interfaces;
+using Microsoft.EntityFrameworkCore;
+
+namespace Carden.Api.Repositories;
+
+public class UserRepository(ApplicationDbContext context): IUserRepository
+{
+    private readonly ApplicationDbContext _context = context;
+    
+    public async Task<User> Create(User user)
+    {
+        var newUser = _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+        return user;
+    }
+    
+    public async Task<User?> FindByEmail(string email)
+    {
+        var user  = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+        return user;
+    }
+
+    public async Task<User?> FindById(Guid userId)
+    {
+        return await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+    }
+
+    public async Task<User?> Update(User user)
+    {
+        var userToUpdate = await _context.Users.FirstOrDefaultAsync(u => u.Id == user.Id);
+        if (userToUpdate is null) return null;
+
+        userToUpdate = user;
+        await _context.SaveChangesAsync();
+        return user;
+    }
+
+    public async Task<Guid?> Delete(Guid userId)
+    {
+        var userToDelete = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        if (userToDelete is null) return null;
+        
+        userToDelete.DeletedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+
+        return userToDelete.Id;
+    }
+}

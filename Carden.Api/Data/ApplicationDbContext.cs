@@ -1,4 +1,4 @@
-﻿using Carden.Api.Models;
+﻿using Carden.Api.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Carden.Api.Data;
