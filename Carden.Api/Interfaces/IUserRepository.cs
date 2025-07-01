@@ -1,6 +1,4 @@
-﻿using Carden.Api.Entities;
-
-namespace Carden.Api.Interfaces;
+﻿namespace Carden.Api.Interfaces;
 
 public interface IUserRepository
 {

@@ -1,5 +1,4 @@
 ﻿using Asp.Versioning;
-using Carden.Api.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Carden.Api.Controllers;

@@ -1,5 +1,4 @@
 ﻿using Carden.Api.Dtos;
-using Carden.Api.Entities;
 
 namespace Carden.Api.Interfaces;
 

@@ -4,5 +4,16 @@ GET {{Carden.Api_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
+POST http://localhost:5209/api/v1/auth/register
+Content-Type: application/json
+
+{
+"Email": 123,
+"FullName": "Adeyemi Abiade",
+"Username": "Cmdliner",
+"Password": "testpassword&123"
+}
+
+###
 GET http://localhost:5209/user
 Accept: application/json

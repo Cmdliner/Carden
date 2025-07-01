@@ -1,19 +1,17 @@
 ﻿using Carden.Api.Dtos;
-using Carden.Api.Entities;
 using Carden.Api.Helpers;
 using Carden.Api.Interfaces;
-using Carden.Api.Repositories;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Carden.Api.Services;
 
-public class AuthService(UserRepository userRepository): IAuthService
+public class AuthService(IUserRepository userRepository): IAuthService
 {
 
-    private readonly UserRepository _userRepository = userRepository;
+    private readonly IUserRepository _userRepository = userRepository;
     public async Task<User> Register(UserRegistrationDto userData)
     {
-        var emailAvailable = await _userRepository.FindByEmail(userData.Email) ?? throw new Exception("Email taken");
+        var emailAvailable = await _userRepository.FindByEmail(userData.Email);
+        if(emailAvailable is not null) throw new Exception("Email taken");
         
         var user = new User
         {

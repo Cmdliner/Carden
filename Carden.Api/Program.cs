@@ -1,5 +1,5 @@
 using Asp.Versioning;
-using Carden.Api.Data;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,15 +29,23 @@ builder.Services.AddApiVersioning(options =>
         options.GroupNameFormat = "'v'V";
         options.SubstituteApiVersionInUrl = true;
     });
+
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddValidatorsFromAssemblyContaining<UserRegistrationValidator>();
 builder.Services.AddControllers();
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
 
 app.UseHttpsRedirection();
+app.UseCors();
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapControllers();
 app.Run();

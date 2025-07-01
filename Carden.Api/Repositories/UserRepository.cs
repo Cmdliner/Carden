@@ -1,6 +1,4 @@
-﻿using Carden.Api.Data;
-using Carden.Api.Entities;
-using Carden.Api.Interfaces;
+﻿using Carden.Api.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace Carden.Api.Repositories;
