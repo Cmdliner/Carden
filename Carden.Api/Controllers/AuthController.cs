@@ -15,6 +15,7 @@ public class AuthController(IAuthService authService) : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] UserRegistrationDto userRegistrationDto)
     {
+        
         if (!ModelState.IsValid)
         {
             var errors = ModelState.SelectMany(x =>
