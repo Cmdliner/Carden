@@ -1,5 +1,6 @@
 ﻿using Asp.Versioning;
 using Carden.Api.Dtos;
+using Carden.Api.Helpers;
 using Carden.Api.Validations;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,23 +16,23 @@ public class AuthController(IAuthService authService) : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] UserRegistrationDto userRegistrationDto)
     {
-        
-        if (!ModelState.IsValid)
-        {
-            var errors = ModelState.SelectMany(x =>
-                x.Value?.Errors.Select(e => e.ErrorMessage).ToList() ?? []);
-            return UnprocessableEntity(new { success = false, errors });                                                                              
-        }
+        //
+        // if (!ModelState.IsValid)
+        // {
+        //     var errors = ModelState.SelectMany(x =>
+        //         x.Value?.Errors.Select(e => e.ErrorMessage).ToList() ?? []);
+        //     return UnprocessableEntity(new { success = false, errors });                                                                              
+        // }
 
         var result = await _authService.Register(userRegistrationDto);
-        return Created(nameof(Register), new { success = true, message = "User registered successfully" });
+        return result.ToCreatedResult();
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login()
+    public async Task<IActionResult> Login([FromBody] UserLoginDto userLoginDto)
     {
-        var result = await _authService.Login();
-        return Ok(Guid.NewGuid());
+        var result = await _authService.Login(userLoginDto);
+        return result.ToActionResult();
     }
 
     [HttpPost("refresh")]

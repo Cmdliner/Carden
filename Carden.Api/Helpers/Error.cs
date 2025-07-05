@@ -4,7 +4,6 @@ public sealed record Error(string Code, string Message, ErrorType Type = ErrorTy
 {
     public static readonly Error None = new(string.Empty, string.Empty);
     
-    // Factory methods for common error types
     public static Error NotFound(string message) => new("NOT_FOUND", message, ErrorType.NotFound);
     public static Error BadRequest(string message) => new("BAD_REQUEST", message, ErrorType.BadRequest);
     public static Error Unauthorized(string message) => new("UNAUTHORIZED", message, ErrorType.Unauthorized);

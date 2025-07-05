@@ -16,83 +16,60 @@ public static class ResultExtensions
     // Overloads for custom success status codes
     public static IActionResult ToActionResult<T>(this Result<T> result, int successStatusCode, string successMessage)
     {
-        if (result.IsSuccess)
+        if (!result.IsSuccess) return result.Error.ToActionResult();
+        var response = new ApiResponse<T>
         {
-            var response = new ApiResponse<T>
-            {
-                Success = true,
-                Data = result.Value,
-                Message = successMessage
-            };
+            Success = true,
+            Data = result.Value,
+            Message = successMessage
+        };
 
-            return new ObjectResult(response) { StatusCode = successStatusCode };
-        }
+        return new ObjectResult(response) { StatusCode = successStatusCode };
 
-        return result.Error.ToActionResult();
     }
 
     public static IActionResult ToActionResult(this Result result, int successStatusCode, string successMessage)
     {
-        if (result.IsSuccess)
+        if (!result.IsSuccess) return result.Error.ToActionResult();
+        var response = new ApiResponse
         {
-            var response = new ApiResponse
-            {
-                Success = true,
-                Message = successMessage
-            };
+            Success = true,
+            Message = successMessage
+        };
 
-            return new ObjectResult(response) { StatusCode = successStatusCode };
-        }
+        return new ObjectResult(response) { StatusCode = successStatusCode };
 
-        return result.Error.ToActionResult();
     }
-
-    // Convenience methods for common scenarios
     public static IActionResult ToCreatedResult<T>(this Result<T> result, string? location = null)
     {
-        if (result.IsSuccess)
+        if (!result.IsSuccess) return result.Error.ToActionResult();
+        var response = new ApiResponse<T>
         {
-            var response = new ApiResponse<T>
-            {
-                Success = true,
-                Data = result.Value,
-                Message = "Resource created successfully"
-            };
+            Success = true,
+            Data = result.Value,
+            Message = "Resource created successfully"
+        };
 
-            var createdResult = new ObjectResult(response) { StatusCode = StatusCodes.Status201Created };
-            
-            if (!string.IsNullOrEmpty(location))
-            {
-                // Add Location header for RESTful compliance
-                createdResult.Value = response;
-                return new CreatedResult(location, response);
-            }
+        var createdResult = new ObjectResult(response) { StatusCode = StatusCodes.Status201Created };
 
-            return createdResult;
-        }
+        if (string.IsNullOrEmpty(location)) return createdResult;
+        
+        createdResult.Value = response;
+        return new CreatedResult(location, response);
 
-        return result.Error.ToActionResult();
     }
 
     public static IActionResult ToCreatedResult(this Result result, string? location = null)
     {
-        if (result.IsSuccess)
+        if (!result.IsSuccess) return result.Error.ToActionResult();
+        var response = new ApiResponse
         {
-            var response = new ApiResponse
-            {
-                Success = true,
-                Message = "Resource created successfully"
-            };
+            Success = true,
+            Message = "Resource created successfully"
+        };
 
-            if (!string.IsNullOrEmpty(location))
-            {
-                return new CreatedResult(location, response);
-            }
+        return !string.IsNullOrEmpty(location) ? new CreatedResult(location, response) : new ObjectResult(response) { StatusCode = StatusCodes.Status201Created };
 
-            return new ObjectResult(response) { StatusCode = StatusCodes.Status201Created };
-        }
-
-        return result.Error.ToActionResult();
     }
 
     public static IActionResult ToAcceptedResult<T>(this Result<T> result)
@@ -107,12 +84,7 @@ public static class ResultExtensions
 
     public static IActionResult ToNoContentResult(this Result result)
     {
-        if (result.IsSuccess)
-        {
-            return new NoContentResult();
-        }
-
-        return result.Error.ToActionResult();
+        return result.IsSuccess ? new NoContentResult() : result.Error.ToActionResult();
     }
 
     public static IActionResult ToActionResult(this Error error)

@@ -8,10 +8,20 @@ POST http://localhost:5209/api/v1/auth/register
 Content-Type: application/json
 
 {
-"Email": 123,
-"FullName": "Adeyemi Abiade",
-"Username": "Cmdliner",
-"Password": "testpassword&123"
+"email": "cmdliner@gmail.com",
+"full_name": "Abdulazeez Abiade",
+"username": "Commandliner",
+"password": "testpassword&123"
+}
+
+
+###
+POST http://localhost:5209/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "cmdliner@gmail.com",
+  "password": "testpassword&123"
 }
 
 ###
