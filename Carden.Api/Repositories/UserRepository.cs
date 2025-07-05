@@ -16,18 +16,18 @@ public class UserRepository(ApplicationDbContext context): IUserRepository
     
     public async Task<User?> FindByEmail(string email)
     {
-        var user  = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+        var user  = await _context.Users.FirstOrDefaultAsync(u => u.Email == email && u.DeletedAt == null);
         return user;
     }
 
     public async Task<User?> FindById(Guid userId)
     {
-        return await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        return await _context.Users.FirstOrDefaultAsync(u => u.Id == userId  && u.DeletedAt == null);
     }
 
     public async Task<User?> Update(User user)
     {
-        var userToUpdate = await _context.Users.FirstOrDefaultAsync(u => u.Id == user.Id);
+        var userToUpdate = await _context.Users.FirstOrDefaultAsync(u => u.Id == user.Id  && u.DeletedAt == null);
         if (userToUpdate is null) return null;
 
         userToUpdate = user;
@@ -37,7 +37,7 @@ public class UserRepository(ApplicationDbContext context): IUserRepository
 
     public async Task<Guid?> Delete(Guid userId)
     {
-        var userToDelete = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        var userToDelete = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId  && u.DeletedAt == null);
         if (userToDelete is null) return null;
         
         userToDelete.DeletedAt = DateTime.UtcNow;

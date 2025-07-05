@@ -34,9 +34,13 @@ public class AuthService(IUserRepository userRepository, JwtHelper jwtHelper): I
 
         var passwordsMatch = PasswordHelper.Verify(loginData.Password, userInDb.PasswordHash);
         if(!passwordsMatch) return Result.Failure<LoginResponseDto>(Error.Forbidden("Invalid email or password"));
+    
+        // Update lastLogin of user object in memory then saves to db using the repository
+        userInDb.LastLogin = DateTime.UtcNow;
+        await _userRepository.Update(userInDb);
         
-        var accessToken = jwtHelper.GenerateAccessToken(userInDb.Id);
-        return Result.Success<LoginResponseDto>(new LoginResponseDto { AccessToken = accessToken });
+        var accessToken = _jwtHelper.GenerateAccessToken(userInDb.Id);
+        return Result.Success(new LoginResponseDto { AccessToken = accessToken });
     }
 
     public Task<Result<object>> Refresh()
