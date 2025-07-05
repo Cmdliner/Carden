@@ -15,6 +15,8 @@ public class User
     [Required]
     [MaxLength(100)]
     public required string FullName { get; set; }
+    
+    [MaxLength(50)]
     public string? Username { get; set; }
     
     public required string PasswordHash { get; set; }
