@@ -8,8 +8,10 @@ namespace Carden.Api.Helpers;
 public class JwtHelper(IConfiguration config)
 {
     private readonly string _secret = config["Jwt:Secret"]!;
-
-    private readonly int _accessTokenDays = int.Parse(config["Jwt:AccessTokenDays"]!);
+    private readonly string _issuer = config["Jwt:Issuer"]!;
+    private readonly string _audience = config["Jwt:Audience"]!;
+    private readonly int _accessTokenMinutes = int.Parse(config["Jwt:AccessTokenMinutes"]!);
+    
 
     public string GenerateAccessToken(Guid userId)
     {
@@ -23,7 +25,9 @@ public class JwtHelper(IConfiguration config)
 
         var token = new JwtSecurityToken(
             claims: claims,
-            expires: DateTime.UtcNow.AddDays(_accessTokenDays),
+            issuer: _issuer,
+            audience: _audience,
+            expires: DateTime.UtcNow.AddMinutes(_accessTokenMinutes),
             signingCredentials: credentials
         );
 

@@ -1,5 +1,4 @@
-﻿using Carden.Api.Interfaces;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace Carden.Api.Repositories;
 
@@ -9,7 +8,7 @@ public class UserRepository(ApplicationDbContext context): IUserRepository
     
     public async Task<User> Create(User user)
     {
-        var newUser = _context.Users.Add(user);
+         _context.Users.Add(user);
         await _context.SaveChangesAsync();
         return user;
     }

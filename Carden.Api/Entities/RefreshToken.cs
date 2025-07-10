@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Carden.Api.Entities;
 
@@ -8,6 +9,7 @@ public class RefreshToken
     public Guid Id { get; init; } = Guid.NewGuid();
     
     [Required]
+    // [ForeignKey("Users")]
     public Guid UserId { get; init; }
     
     [Required]
