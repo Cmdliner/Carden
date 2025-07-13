@@ -3,6 +3,14 @@ using Carden.Api.Helpers;
 
 namespace Carden.Api.Services;
 
+public interface IAuthService
+{
+    public  Task<Result<User>> Register(UserRegistrationDto userData);
+    public  Task<Result<LoginResponseDto>> Login(UserLoginDto loginData);
+    public  Task<Result<RefreshResponseDto>> Refresh(string userId, string refreshId);
+    public  Task<Result<object>> Logout(string jwt, string refreshToken);
+}
+
 public class AuthService(
     IUserRepository userRepository,
     IRefreshTokenRepository refreshTokenRepository,

@@ -19,6 +19,7 @@ public class User
     [MaxLength(50)]
     public string? Username { get; set; }
     
+    [Required]
     public required string PasswordHash { get; set; }
     
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
@@ -26,6 +27,12 @@ public class User
     public DateTime? LastLogin { get; set; } = null;
 
     public DateTime? DeletedAt { get; set; } = null;
-    // public string? ProfileImgUrl { get; set; }
+
+    public string? ProfileImageUrl { get; set; } = null;
+
+    public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = [];
+    public virtual ICollection<Income> IncomeList { get; set; } = [];
+    public virtual ICollection<ExpenseItem> ExpenseItems { get; set; } = [];
+    public virtual Wallet Wallet { get; set; } = null!;
 
 }

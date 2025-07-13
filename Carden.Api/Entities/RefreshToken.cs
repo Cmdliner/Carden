@@ -9,7 +9,6 @@ public class RefreshToken
     public Guid Id { get; init; } = Guid.NewGuid();
     
     [Required]
-    // [ForeignKey("Users")]
     public Guid UserId { get; init; }
     
     [Required]
@@ -19,4 +18,7 @@ public class RefreshToken
     public DateTime ExpiresAt { get; set; } = DateTime.UtcNow.AddDays(30);
 
     public DateTime? RevokedAt { get; set; }
+
+    public virtual User User { get; set; } = null!;
+
 }

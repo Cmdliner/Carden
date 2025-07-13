@@ -59,10 +59,31 @@ public class AuthController(IAuthService authService) : ControllerBase
         var refreshCookie = Request.Cookies["refresh"];
 
         var userId = User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
-        if (userId is null) return BadRequest("Unable to logout cos no sabi uid");
-        Console.WriteLine($"user id :{userId}");
+        if (userId is null)
+        {
+            return Unauthorized(new ApiResponse 
+            {
+                Success = false,
+                Error = new ErrorDetails
+                {
+                    Code = "401",
+                    Message = "User is logged out already"
+                } 
+            });
+        }
 
-        if (refreshCookie is null) return BadRequest("No refresh cookie");
+        if (refreshCookie is null)
+        {
+            return BadRequest(new ApiResponse 
+            {
+                Success = false,
+                Error = new ErrorDetails
+                {
+                    Code = "400",
+                    Message = "Refresh token required"
+                } 
+            });
+        }
         
         var result = await _authService.Logout(userId, refreshCookie);
         return result.ToNoContentResult();
