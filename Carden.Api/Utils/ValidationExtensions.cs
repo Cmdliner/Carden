@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 
-namespace Carden.Api.Helpers;
+namespace Carden.Api.Utils;
 
 public static class ValidationExtensions
 {

@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using Microsoft.AspNetCore.Diagnostics;
 
-namespace Carden.Api.Helpers;
+namespace Carden.Api.Utils;
 
 public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
 {

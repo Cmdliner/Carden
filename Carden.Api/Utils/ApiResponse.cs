@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Carden.Api.Helpers;
+namespace Carden.Api.Utils;
 
 public class ApiResponse
 {

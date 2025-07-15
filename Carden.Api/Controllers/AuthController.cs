@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using Asp.Versioning;
 using Carden.Api.Dtos;
-using Carden.Api.Helpers;
+using Carden.Api.Utils;
 using Carden.Api.Validations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace Carden.Api.Helpers;
+namespace Carden.Api.Utils;
 public static class ResultExtensions
 {
    public static IActionResult ToActionResult<T>(this Result<T> result)

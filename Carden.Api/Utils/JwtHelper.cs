@@ -3,7 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Carden.Api.Helpers;
+namespace Carden.Api.Utils;
 
 public class JwtHelper(IConfiguration config)
 {

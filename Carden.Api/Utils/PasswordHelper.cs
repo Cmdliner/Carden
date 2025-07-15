@@ -1,7 +1,4 @@
-﻿using Carden.Api.Entities;
-using Microsoft.AspNetCore.Identity;
-
-namespace Carden.Api.Helpers;
+﻿namespace Carden.Api.Utils;
 
 public static class PasswordHelper
 {
