@@ -9,14 +9,14 @@ public class Wallet
     public Guid Id { get; set; }
     
     [Required]
-    public Guid UserId { get; set; }
+    public Guid UserId { get; init; }
 
     [Required]
     [Column(TypeName = "decimal(18, 2)")]
     public decimal Balance { get; set; } = 0M;
     
     [Required]
-    public WalletProvider Provider { get; set; } = WalletProvider.Paystack;
+    public WalletProvider Provider { get; init; } = WalletProvider.Paystack;
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

@@ -6,6 +6,8 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
 {
     public DbSet<User> Users => Set<User>();
 
+    public DbSet<Wallet> Wallets => Set<Wallet>();
+
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     public DbSet<ExpenseItem> ExpenseItems => Set<ExpenseItem>();
