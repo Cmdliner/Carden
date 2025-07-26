@@ -18,78 +18,120 @@ public class AuthController(IAuthService authService) : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] UserRegistrationDto userRegistrationDto)
     {
-        //
-        // if (!ModelState.IsValid)
-        // {
-        //     var errors = ModelState.SelectMany(x =>
-        //         x.Value?.Errors.Select(e => e.ErrorMessage).ToList() ?? []);
-        //     return UnprocessableEntity(new { success = false, errors });                                                                              
-        // }
-
-        var result = await _authService.Register(userRegistrationDto);
-        return result.ToCreatedResult();
+        try
+        {
+            var result = await _authService.Register(userRegistrationDto);
+            return result.ToCreatedResult();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse
+            {
+                Error = new ErrorDetails { Code = "500", Message = "Internal server error" },
+                Success = false,
+                Timestamp = DateTime.UtcNow
+            });        }
     }
 
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] UserLoginDto userLoginDto)
     {
-        var result = await _authService.Login(userLoginDto);
-        if(result.IsSuccess) SetRefreshCookie(result.Value.RefreshToken.ToString());
-        return result.ToActionResult();
+        try
+        {
+            var result = await _authService.Login(userLoginDto);
+            if (result.IsSuccess) SetRefreshCookie(result.Value.RefreshToken.ToString());
+            return result.ToActionResult();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse
+            {
+                Error = new ErrorDetails { Code = "500", Message = "Internal server error" },
+                Success = false,
+                Timestamp = DateTime.UtcNow
+            });        }
     }
-    
+
     [Authorize]
     [HttpPost("refresh")]
     public async Task<IActionResult> Refresh()
     {
-        var userId = User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
-        if (userId is null) return Unauthorized("Invalid access token");
+        try
+        {
+            var userId = User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
+            if (userId is null) return Unauthorized("Invalid access token");
 
-        var refreshToken = Request.Cookies["refresh"];
-        if (refreshToken is null) return Unauthorized("Invalid refresh token");
-        
-        var result = await _authService.Refresh( userId,  refreshToken);
-        return result.ToActionResult();
+            var refreshToken = Request.Cookies["refresh"];
+            if (refreshToken is null) return Unauthorized("Invalid refresh token");
+
+            var result = await _authService.Refresh(userId, refreshToken);
+            return result.ToActionResult();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse
+            {
+                Error = new ErrorDetails { Code = "500", Message = "Internal server error" },
+                Success = false,
+                Timestamp = DateTime.UtcNow
+            });
+        }
     }
-    
+
     [Authorize]
     [HttpDelete("logout")]
     public async Task<IActionResult> Logout()
     {
-        var refreshCookie = Request.Cookies["refresh"];
-
-        var userId = User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
-        if (userId is null)
+        try
         {
-            return Unauthorized(new ApiResponse 
+            var refreshCookie = Request.Cookies["refresh"];
+
+            var userId = User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
+            if (userId is null)
             {
-                Success = false,
-                Error = new ErrorDetails
+                return Unauthorized(new ApiResponse
                 {
-                    Code = "401",
-                    Message = "User is logged out already"
-                } 
+                    Success = false,
+                    Error = new ErrorDetails
+                    {
+                        Code = "401",
+                        Message = "User is logged out already"
+                    }
+                });
+            }
+
+            if (refreshCookie is null)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Error = new ErrorDetails
+                    {
+                        Code = "400",
+                        Message = "Refresh token required"
+                    }
+                });
+            }
+
+            var result = await _authService.Logout(userId, refreshCookie);
+            return result.ToNoContentResult();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse
+            {
+                Error = new ErrorDetails { Code = "500", Message = "Internal server error" },
+                Success = false,
+                Timestamp = DateTime.UtcNow
             });
         }
-
-        if (refreshCookie is null)
-        {
-            return BadRequest(new ApiResponse 
-            {
-                Success = false,
-                Error = new ErrorDetails
-                {
-                    Code = "400",
-                    Message = "Refresh token required"
-                } 
-            });
-        }
-        
-        var result = await _authService.Logout(userId, refreshCookie);
-        return result.ToNoContentResult();
     }
-    
-    
+
+
     private void SetRefreshCookie(string refreshToken)
     {
         var cookieOptions = new CookieOptions
@@ -100,8 +142,7 @@ public class AuthController(IAuthService authService) : ControllerBase
             Expires = DateTime.UtcNow.AddDays(30),
             Path = "api/v1/auth/refresh"
         };
-        
+
         Response.Cookies.Append("refresh", refreshToken, cookieOptions);
-        
     }
 }

@@ -6,8 +6,9 @@ namespace Carden.Api.Services;
 public interface IUserService
 {
     public Task<Result<User>> GetUser(Guid userId);
-    public Task<Result<object>> UploadProfileImage(Guid userId, CloudinaryUploadRequest uploadRequest);
-    
+    public Task<Result<object>> UploadProfileImage(Guid userId, IFormFile formFile);
+    public Task<Result<User>> DeleteUser(Guid userId);
+
 }
 
 public class UserService(IUserRepository userRepository, ICloudinaryService cloudinaryService): IUserService
@@ -17,23 +18,62 @@ public class UserService(IUserRepository userRepository, ICloudinaryService clou
 
     public async Task<Result<User>> GetUser(Guid userId)
     {
-        var user = await _userRepository.FindById(userId);
-        if (user is null) return Result.Failure<User>(Error.BadRequest("User not found!"));
+        try
+        {
+            var user = await _userRepository.FindById(userId);
+            if (user is null) return Result.Failure<User>(Error.BadRequest("User not found!"));
 
-        return Result.Success(user);
+            return Result.Success(user);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw e;
+        }
     }
     
-    public async Task<Result<object>> UploadProfileImage(Guid userId, CloudinaryUploadRequest uploadRequest)
+    public async Task<Result<object>> UploadProfileImage(Guid userId, IFormFile formFile)
     {
-        var user = await _userRepository.FindById(userId);
-        if (user is null) return Result.Failure(Error.BadRequest("User not found"));
+        try
+        {
+            var user = await _userRepository.FindById(userId);
+            if (user is null) return Result.Failure(Error.BadRequest("User not found"));
 
-        if (user.ProfileImageUrl is not null) throw new NotImplementedException();
+            if (user.ProfileImageUrl is not null) throw new NotImplementedException();
 
-        var uploadResult = await _cloudinaryService.UploadImageAsync(uploadRequest);
+            var cloudinaryUploadRequest = new CloudinaryUploadRequest(formFile, "profile_images", null);
 
-        if (!uploadResult.Success) return Result.Failure(Error.BadRequest(uploadResult.ErrorMessage!));
+            var uploadResult = await _cloudinaryService.UploadImageAsync(cloudinaryUploadRequest);
 
-        return Result.Success(uploadResult);
+            if (!uploadResult.Success) return Result.Failure(Error.BadRequest(uploadResult.ErrorMessage!));
+
+            return Result.Success(uploadResult);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw e;
+        }
+    }
+
+    public async Task<Result<User>> DeleteUser(Guid userId)
+    {
+        try
+        {
+            var user = await _userRepository.FindById(userId);
+            if (user is null) return Result.Failure<User>(Error.BadRequest("User not found!"));
+            
+            user.DeletedAt = DateTime.UtcNow;
+            
+            var deletedUser = await _userRepository.Update(user);
+            return (deletedUser is null)
+                ? Result.Success(deletedUser)
+                : Result.Failure<User>(Error.BadRequest("Error deleting user"));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw e;
+        }
     }
 }
