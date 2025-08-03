@@ -17,6 +17,8 @@ public class ExpenseItem
     [MaxLength(50)]
     public string? Category { get; set; } = null;
     
+    public string? Description { get; set; } = null;
+    
     [Required]
     public decimal ExpectedPrice { get; set; }
     
@@ -30,7 +32,6 @@ public class ExpenseItem
     [Required]
     public DateTime UpdatedAt { get; set; }
 
-    [Required]
     public virtual User User { get; set; } = null!;
 
 }

@@ -4,6 +4,15 @@ namespace Carden.Api.Utils;
 
 public class ApiResponse
 {
+    public ApiResponse() {}
+
+    public ApiResponse(bool success, string mssg, ErrorDetails error)
+    {
+        Success = success;
+        Message = mssg;
+        Error = error;
+    }
+
     [JsonPropertyName("success")]
     public bool Success { get; set; }
     

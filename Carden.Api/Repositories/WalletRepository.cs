@@ -2,7 +2,7 @@
 
 namespace Carden.Api.Repositories;
 
-interface IWalletRepository
+public interface IWalletRepository
 {
     public Task<Guid?> CreateAsync(Wallet wallet);
     public Task<Wallet?> FindAsync(Guid id);
@@ -24,7 +24,7 @@ public class WalletRepository(ApplicationDbContext context): IWalletRepository
         }
         catch (Exception e)
         {
-            return null;
+            throw e;
         }
     }
 

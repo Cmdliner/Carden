@@ -9,7 +9,7 @@ namespace Carden.Api.Controllers;
 
 [ApiController]
 [ApiVersion(1)]
-[Route("/api/v{v:apiVersion}/[controller]s")]
+[Route("api/v{v:apiVersion}/[controller]s")]
 [Authorize]
 public class UserController(IUserService userService) : ControllerBase
 {
@@ -81,7 +81,7 @@ public class UserController(IUserService userService) : ControllerBase
         }
     }
     
-    [HttpDelete("/{user_id:guid}")]
+    [HttpDelete("{user_id:guid}")]
     public async Task<IActionResult> DeleteUser(Guid user_id)
     {
         try
