@@ -7,8 +7,10 @@ public interface IExpenseItemService
 {
     public Task<Result<ExpenseItem>> AddItem(Guid user_id, AddExpenseItemDto expenseItemDto);
     public Task<Result<ExpenseItem>> GetItem(Guid item_id, Guid user_id);
-    public Task<Result<List<ExpenseItem>>> GetExpenseItems(Guid user_id);
-    public Task<Result<ExpenseItem>> UpdateItem(Guid item_id, Guid user_id);
+    public Task<Result<List<ExpenseItem>>> GetItems(Guid user_id);
+    public Task<Result<ExpenseItem>> UpdateItemPriority(Guid user_id, Guid item_id, uint priority);
+    public Task<Result<ExpenseItem>> UpdateItem(Guid user_id);
+
 }
 
 public class ExpenseItemService(IExpenseItemRepository expenseItemRepository): IExpenseItemService
@@ -18,16 +20,18 @@ public class ExpenseItemService(IExpenseItemRepository expenseItemRepository): I
 
     public async Task<Result<ExpenseItem>> AddItem(Guid user_id,  AddExpenseItemDto expenseItemDto)
     {
-
-        var expenseItem = await _expenseItemRepository.CreateAsync(new ExpenseItem {
+        var expenseItem = new ExpenseItem
+        {
             UserId = user_id,
             Name = expenseItemDto.Name,
             Category = expenseItemDto.Category,
             Description = expenseItemDto.Description,
             ExpectedPrice = expenseItemDto.ExpectedPrice
-        });
+        };
+        
+        var expenseItemInDb = await _expenseItemRepository.AddItemAsync(expenseItem, expenseItemDto.Priority);
 
-        return Result.Success<ExpenseItem>(expenseItem);
+        return Result.Success<ExpenseItem>(expenseItemInDb);
     }
 
     public async Task<Result<ExpenseItem>> GetItem(Guid item_id, Guid user_id)
@@ -51,7 +55,7 @@ public class ExpenseItemService(IExpenseItemRepository expenseItemRepository): I
         }
     }
 
-    public async Task<Result<List<ExpenseItem>>> GetExpenseItems(Guid user_id)
+    public async Task<Result<List<ExpenseItem>>> GetItems(Guid user_id)
     {
         try
         {
@@ -66,7 +70,31 @@ public class ExpenseItemService(IExpenseItemRepository expenseItemRepository): I
         }
     }
 
-    public Task<Result<ExpenseItem>> UpdateItem(Guid item_id, Guid user_id)
+    public async Task<Result<ExpenseItem>> UpdateItemPriority(Guid user_id, Guid item_id, uint priority)
+    {
+        try
+        {
+            var expenseItem = await _expenseItemRepository.FindAsync(item_id);
+            if (expenseItem.UserId != user_id)
+            {
+                return Result.Failure<ExpenseItem>(Error.BadRequest("Item not found"));
+            }
+            var updatedItem  = await _expenseItemRepository.UpdatePriorityAsync(item_id, priority);
+            if (updatedItem is null)
+            {
+                return Result.Failure<ExpenseItem>(Error.BadRequest("Update failed"));
+            }
+
+            return Result.Success<ExpenseItem>(expenseItem);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+
+    public async Task<Result<ExpenseItem>> UpdateItem(Guid user_id)
     {
         try
         {

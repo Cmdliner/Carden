@@ -17,5 +17,5 @@ public record AddExpenseItemDto
     public decimal ExpectedPrice { get; set; }
     
     [JsonPropertyName("priority")]
-    public uint Priority { get; set; }
+    public uint? Priority { get; set; }
 }
