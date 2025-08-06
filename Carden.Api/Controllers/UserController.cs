@@ -20,7 +20,7 @@ public class UserController(IUserService userService) : ControllerBase
     {
         try
         {
-            var userId = User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
+            var userId = User.FindFirst("sub")?.Value;
             foreach (var claim in User.Claims)
             {
                 Console.WriteLine($"Claim => {claim}");
@@ -56,7 +56,7 @@ public class UserController(IUserService userService) : ControllerBase
     {
         try
         {
-            var userId = User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
+            var userId = User.FindFirst("sub")?.Value;
             if (userId is null)
             {
                 return Unauthorized(new ApiResponse
@@ -86,7 +86,7 @@ public class UserController(IUserService userService) : ControllerBase
     {
         try
         {
-            var userId = User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
+            var userId = User.FindFirst("sub")?.Value;
             if (userId is null || Guid.Parse(userId) != user_id)
             {
                 return Unauthorized(new ApiResponse

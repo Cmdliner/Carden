@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Security.Claims;
 using Asp.Versioning;
 using Carden.Api.Dtos;
 using Carden.Api.Utils;
@@ -60,7 +61,8 @@ public class AuthController(IAuthService authService) : ControllerBase
     {
         try
         {
-            var userId = User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
+            // Get the userId through the "sub" claim directly
+            var userId = User.FindFirst("sub")?.Value;
             if (userId is null) return Unauthorized("Invalid access token");
 
             var refreshToken = Request.Cookies["refresh"];
@@ -89,7 +91,7 @@ public class AuthController(IAuthService authService) : ControllerBase
         {
             var refreshCookie = Request.Cookies["refresh"];
 
-            var userId = User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
+            var userId = User.FindFirst("sub")?.Value;
             if (userId is null)
             {
                 return Unauthorized(new ApiResponse
