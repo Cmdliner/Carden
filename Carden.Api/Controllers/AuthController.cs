@@ -41,7 +41,6 @@ public class AuthController(IAuthService authService) : ControllerBase
         try
         {
             var result = await _authService.Login(userLoginDto);
-            if (result.IsSuccess) SetRefreshCookie(result.Value.RefreshToken.ToString());
             return result.ToActionResult();
         }
         catch (Exception e)
@@ -65,8 +64,8 @@ public class AuthController(IAuthService authService) : ControllerBase
             var userId = User.FindFirst("sub")?.Value;
             if (userId is null) return Unauthorized("Invalid access token");
 
-            var refreshToken = Request.Cookies["refresh"];
-            if (refreshToken is null) return Unauthorized("Invalid refresh token");
+            var refreshToken = Request.Headers["x-refresh"].ToString();
+            if (refreshToken.Length < 1) return Unauthorized("Invalid refresh token");
 
             var result = await _authService.Refresh(userId, refreshToken);
             return result.ToActionResult();

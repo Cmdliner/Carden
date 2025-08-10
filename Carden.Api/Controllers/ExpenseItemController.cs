@@ -24,7 +24,7 @@ public class ExpenseItemController(IExpenseItemService expenseItemService) : Con
             var apiResponse = new ApiResponse(false, "Unauthorized", errorDetails);
             return Unauthorized(apiResponse);
         }
-        Console.WriteLine(new { id, type = id.GetType(), userId});
+
         var result = await _expenseItemService.GetItem(id, Guid.Parse(userId));
         return result.ToActionResult();
     }
@@ -59,10 +59,10 @@ public class ExpenseItemController(IExpenseItemService expenseItemService) : Con
         return result.ToCreatedResult();
     }
 
-    [HttpPut("{item_id:guid}/priority")]
+    [HttpPut("{id:guid}/priority")]
     public async Task<IActionResult> UpdateItemPriority(
         [FromBody] UpdateItemPriorityDto updateItemPriorityDto,
-        Guid item_id)
+        Guid id)
     {
         var userId = User.FindFirst("sub")?.Value;
         if (userId is null)
@@ -73,8 +73,23 @@ public class ExpenseItemController(IExpenseItemService expenseItemService) : Con
         }
 
         var result = await _expenseItemService
-            .UpdateItemPriority(Guid.Parse(userId), item_id, updateItemPriorityDto.NewPriority);
+            .UpdateItemPriority(Guid.Parse(userId), id, updateItemPriorityDto.NewPriority);
 
+        return result.ToActionResult();
+    }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> DeleteExpenseItem(Guid id)
+    {
+        var userId = User.FindFirst("sub")?.Value;
+        if (userId is null)
+        {
+            var errorDetails = new ErrorDetails("403", "Unauthorized");
+            var apiResponse = new ApiResponse(false, "Unauthorized", errorDetails);
+            return Unauthorized(apiResponse);
+        }
+
+        var result = await _expenseItemService.DeleteItem(Guid.Parse(userId), id);
         return result.ToActionResult();
     }
 }

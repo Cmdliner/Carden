@@ -9,6 +9,7 @@ public interface IExpenseItemRepository
     public Task<ExpenseItem> AddItemAsync(ExpenseItem expenseItem, uint? priority = null);
     public Task<List<ExpenseItem>> FindByUser(Guid userId, uint? take = null);
     public Task<ExpenseItem?> UpdatePriorityAsync(Guid itemId, uint priority);
+    public Task<bool> DeleteAsync(Guid item_id);
 }
 
 public class ExpenseItemRepository(ApplicationDbContext context) : IExpenseItemRepository
@@ -117,7 +118,7 @@ public class ExpenseItemRepository(ApplicationDbContext context) : IExpenseItemR
                     ;
             }
 
-            item.Priority = newPriority;
+            // item.Priority = newPriority;
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
@@ -126,6 +127,25 @@ public class ExpenseItemRepository(ApplicationDbContext context) : IExpenseItemR
         catch (Exception)
         {
             await transaction.RollbackAsync();
+            throw;
+        }
+    }
+
+    public async Task<bool> DeleteAsync(Guid item_id)
+    {
+        try
+        {
+            var expenseItem = await _context.ExpenseItems.FirstOrDefaultAsync(i => i.Id == item_id);
+            if (expenseItem is null) return false;
+            
+             _context.ExpenseItems.Remove(expenseItem);
+             await _context.SaveChangesAsync();
+
+             return true;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
             throw;
         }
     }
