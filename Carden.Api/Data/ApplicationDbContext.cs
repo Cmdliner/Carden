@@ -54,9 +54,7 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
                 .WithMany(u => u.ExpenseItems)
                 .HasForeignKey(e => e.UserId);
 
-            entity
-                .HasIndex(e => e.Priority)
-                .IsUnique();
+            
         });
 
         modelBuilder.Entity<Income>(entity =>

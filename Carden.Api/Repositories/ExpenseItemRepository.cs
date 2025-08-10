@@ -4,7 +4,7 @@ namespace Carden.Api.Repositories;
 
 public interface IExpenseItemRepository
 {
-    public Task<ExpenseItem> FindAsync(Guid item_id);
+    public Task<ExpenseItem?> FindAsync(Guid item_id);
 
     public Task<ExpenseItem> AddItemAsync(ExpenseItem expenseItem, uint? priority = null);
     public Task<List<ExpenseItem>> FindByUser(Guid userId, uint? take = null);
@@ -33,28 +33,43 @@ public class ExpenseItemRepository(ApplicationDbContext context) : IExpenseItemR
         await using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
-            var targetPriority = priority ?? 1;
-            var maxPriority = await _context.ExpenseItems.MaxAsync(e => e.Priority);
-            if (targetPriority > maxPriority + 1) targetPriority = maxPriority + 1;
+            var maxPriority = await _context.ExpenseItems
+                .Where(e => e.UserId == expenseItem.UserId)
+                .Select(e => (uint?)e.Priority)
+                .MaxAsync() ?? 0;
+            uint targetPriority;
 
-            #region REPRIORITIZE_EXPENSE_ITEM_QUERY
-            await _context.ExpenseItems.Where(e => e.Priority >= targetPriority)
-                .ExecuteUpdateAsync(setters => setters
-                    .SetProperty(e => e.Priority, e => e.Priority + 1));
+            if (priority.HasValue)
+            {
+                if (priority.Value > maxPriority + 1) targetPriority = maxPriority + 1;
+                else
+                {
+                    targetPriority = priority.Value;
 
-            #endregion
+                    // If inserting in the middle, shift other items up
+                    if (targetPriority <= maxPriority)
+                    {
+                        await _context.ExpenseItems
+                            .Where(e => e.UserId == expenseItem.UserId && e.Priority >= targetPriority)
+                            .ExecuteUpdateAsync(setters => setters
+                                .SetProperty(e => e.Priority, e => e.Priority + 1));
+                    }
+                }
+            }
+            else targetPriority = maxPriority + 1;
+
 
             expenseItem.Priority = targetPriority;
             _context.ExpenseItems.Add(expenseItem);
             await _context.SaveChangesAsync();
-
             await transaction.CommitAsync();
+
             return expenseItem;
         }
-        catch (Exception e)
+        catch (Exception)
         {
             await transaction.RollbackAsync();
-            throw e;
+            throw;
         }
     }
 
@@ -63,47 +78,59 @@ public class ExpenseItemRepository(ApplicationDbContext context) : IExpenseItemR
         await using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
-            var maxPriority = await _context.ExpenseItems.MaxAsync(e => e.Priority);
-            if (priority > maxPriority) return null;
-
             var item = await _context.ExpenseItems.FirstOrDefaultAsync(e => e.Id == itemId);
+            if (item is null) return null;
+
+            var maxPriority = await _context.ExpenseItems
+                .Where(e => e.UserId == item.UserId)
+                .MaxAsync(e => e.Priority);
+
+            if (priority > maxPriority) return null;
 
             var oldPriority = item.Priority;
             var newPriority = priority;
 
-            switch (newPriority)
-            {
-                case uint _ when newPriority > oldPriority:
+            if (oldPriority == newPriority) return item;
 
-                    // old ->  3  new -> 5 ( from 4 -> 5 priority - 1)
-                    await _context.ExpenseItems
-                        .Where(e => e.Priority > oldPriority && e.Priority <= newPriority)
-                        .ExecuteUpdateAsync(setters => setters
-                            .SetProperty(e => e.Priority, e => e.Priority - 1));
-                    break;
-                case uint _ when newPriority < oldPriority:
-                    // old ->  5  new -> 3 ( affects 3 && 4, priority + 1)
-                    await _context.ExpenseItems
-                        .Where(e => e.Priority >= newPriority && e.Priority < oldPriority)
-                        .ExecuteUpdateAsync(setters => setters
-                            .SetProperty(e => e.Priority, e => e.Priority + 1));
-                    break;
-                default: return null;
+            if (newPriority > oldPriority)
+            {
+                // Moving down: decrease priority of items between old and new position
+                await _context.ExpenseItems
+                    .Where(e => e.UserId == item.UserId &&
+                                e.Priority > oldPriority &&
+                                e.Priority <= newPriority)
+                    .OrderBy(e => e.Priority)
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(e => e.Priority, e => e.Priority - 1));
+            }
+            else
+            {
+                // Moving up: increase priority of items between new and old position
+                await _context.ExpenseItems
+                    .Where(e => e.UserId == item.UserId &&
+                                e.Priority >= newPriority &&
+                                e.Priority < oldPriority)
+                    .OrderBy(e => e.Priority)
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(e => e.Priority, e => e.Priority + 1))
+                    
+                    ;
             }
 
             item.Priority = newPriority;
-            await _context.Database.CommitTransactionAsync();
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             return item;
         }
-        catch (Exception e)
+        catch (Exception)
         {
             await transaction.RollbackAsync();
             throw;
         }
-
-        return null;
     }
+    
+    
 
     public async Task<List<ExpenseItem>> FindByUser(Guid userId, uint? take = null)
     {

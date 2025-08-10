@@ -4,18 +4,19 @@ GET {{Carden.Api_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
-POST https://localhost:7027/api/v1/auth/register
+POST {{Carden.Api_HostAddress}}/api/v1/auth/register
 Content-Type: application/json
 
 {
-"full_name": "Abdulazeez Abiade",
-"username": "Commandliner",
-"password": "testpassword&123"
+  "email": "cmdliner@gmail.com",
+  "full_name": "Abdulazeez Abiade",
+  "username": "Commandliner",
+  "password": "testpassword&123"
 }
 
 
 ###
-POST https://localhost:7027/api/v1/auth/login
+POST https://{{Carden.Api_HostAddress}}/api/v1/auth/login
 Content-Type: application/json
 
 {
@@ -24,20 +25,53 @@ Content-Type: application/json
 }
 
 ###
-POST https://localhost:7027/api/v1/auth/refresh
+POST https://{{Carden.Api_HostAddress}}/api/v1/auth/refresh
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyODYyMTViYS1iZDEzLTRjNGQtODRiNy00M2E0MjM0NjhkOTUiLCJleHAiOjE3NTIxMzgzMDEsImlzcyI6Imh0dHBzOi8vYXBpLnVzZWNhcmRlbi5jb20iLCJhdWQiOiJodHRwczovL3ZtLmNhcmRlbi5hcHAifQ.CQHEDlmFSzDA9wb6PuXowVlq8aY2ftkF_mIkD0ckA20
-Cookie: refresh=90a1bef5-8e3f-459d-a291-f9e70a636547; expires=Sat, 09 Aug 2025 08:50:02 GMT; path=api/v1/auth/refresh; secure; samesite=strict; httponly
+Authorization: Bearer {{Carden.Auth.Access_Token}}
+Cookie: {{Carden.Auth.Refresh_Cookie}}
+
+### Add new expense item
+POST https://{{Carden.Api_HostAddress}}/api/v1/expense-items/
+Content-Type: application/json
+Authorization: Bearer {{Carden.Auth.Access_Token}}
+Cookie: {{Carden.Auth.Refresh_Cookie}}
+
+{
+  "name": "Loafers",
+  "expected_price": 40000,
+  "category": "clothing"
+}
+
+### Get single expense item
+GET https://{{Carden.Api_HostAddress}}/api/v1/expense-items/0198931f-6fd6-7fce-8d2d-43031a142ebc
+Content-Type: application/json
+Authorization: Bearer {{Carden.Auth.Access_Token}}
+Cookie: {{Carden.Auth.Refresh_Cookie}}
+
+### Get all expense items
+GET https://{{Carden.Api_HostAddress}}/api/v1/expense-items/
+Content-Type: application/json
+Authorization: Bearer {{Carden.Auth.Access_Token}}
+Cookie: {{Carden.Auth.Refresh_Cookie}}
+
+### Update item priority
+PUT https://{{Carden.Api_HostAddress}}/api/v1/expense-items/01989326-a9f1-75b3-855f-fc633f679b1b/priority
+Content-Type: application/json
+Authorization: Bearer {{Carden.Auth.Access_Token}}
+Cookie: {{Carden.Auth.Refresh_Cookie}}
+
+{
+  "priority": 3
+}
 
 ###
-DELETE https://localhost:7027/api/v1/auth/logout
+DELETE https://{{Carden.Api_HostAddress}}/api/v1/auth/logout
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyM2Q2MTEzZS05ZWQwLTQ4MmMtYmMyNC1iYmEyMTc5Zjg2ZWQiLCJleHAiOjE3NTMxODI2OTMsImlzcyI6Imh0dHBzOi8vYXBpLnVzZWNhcmRlbi5jb20iLCJhdWQiOiJodHRwczovL3ZtLmNhcmRlbi5hcHAifQ.DSoqw5u-uFom2CYJ8Ua8kt9yVnfWMWIQIztJBnDX7mU",
-Cookie: refresh=e0e0bbc9-1a0d-4acd-8c65-762d19929271; expires=Thu, 21 Aug 2025 10:39:15 GMT; path=api/v1/auth/refresh; secure; samesite=strict; httponly
-
+Authorization: Bearer {{Carden.Auth.Access_Token}}
+Cookie: {{Carden.Auth.Refresh_Cookie}}
 
 ###
-GET https://localhost:7027/api/v1/users
+GET https://{{Carden.Api_HostAddress}}/api/v1/users
 Accept: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyM2Q2MTEzZS05ZWQwLTQ4MmMtYmMyNC1iYmEyMTc5Zjg2ZWQiLCJleHAiOjE3NTMxODI3NzksImlzcyI6Imh0dHBzOi8vYXBpLnVzZWNhcmRlbi5jb20iLCJhdWQiOiJodHRwczovL3ZtLmNhcmRlbi5hcHAifQ.iRlHSrIISLoyxT97ne3p1y1zOT7j19nWYd5wuKzVXqE
-Cookie:  refresh=85e9bbe1-a7c1-4578-a926-eb4360730119; expires=Thu, 21 Aug 2025 10:57:59 GMT; path=api/v1/auth/refresh; secure; samesite=strict; httponly
+Authorization: Bearer {{Carden.Auth.Access_Token}}
+Cookie:  {{Carden.Auth.Refresh_Cookie}}

@@ -41,7 +41,7 @@ public class ExpenseItemService(IExpenseItemRepository expenseItemRepository): I
             var expenseItem = await _expenseItemRepository.FindAsync(item_id);
             if (expenseItem is null) return Result.Failure<ExpenseItem>(Error.BadRequest("expense item not found"));
 
-            if (expenseItem.Id != user_id)
+            if (expenseItem.UserId != user_id)
             {
                 return Result.Failure<ExpenseItem>(Error.BadRequest("expense item not found!"));
             }

@@ -6,6 +6,9 @@
 # dotenv files
 .env
 
+# Jetbrains http secrets
+Carden.Api/http-client.private.env.json
+
 # User-specific files
 *.rsuser
 *.suo

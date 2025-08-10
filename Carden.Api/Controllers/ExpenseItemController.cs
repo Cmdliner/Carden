@@ -1,12 +1,14 @@
 ﻿using Asp.Versioning;
 using Carden.Api.Dtos;
 using Carden.Api.Utils;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Carden.Api.Controllers;
 
 [ApiController]
 [ApiVersion(1)]
+[Authorize]
 [Route("api/v{v:apiVersion}/expense-items")]
 public class ExpenseItemController(IExpenseItemService expenseItemService) : ControllerBase
 {
@@ -22,7 +24,7 @@ public class ExpenseItemController(IExpenseItemService expenseItemService) : Con
             var apiResponse = new ApiResponse(false, "Unauthorized", errorDetails);
             return Unauthorized(apiResponse);
         }
-
+        Console.WriteLine(new { id, type = id.GetType(), userId});
         var result = await _expenseItemService.GetItem(id, Guid.Parse(userId));
         return result.ToActionResult();
     }
@@ -58,7 +60,8 @@ public class ExpenseItemController(IExpenseItemService expenseItemService) : Con
     }
 
     [HttpPut("{item_id:guid}/priority")]
-    public async Task<IActionResult> UpdateItemPriority([FromBody] UpdateItemPriorityDto updateItemPriorityDto,
+    public async Task<IActionResult> UpdateItemPriority(
+        [FromBody] UpdateItemPriorityDto updateItemPriorityDto,
         Guid item_id)
     {
         var userId = User.FindFirst("sub")?.Value;
