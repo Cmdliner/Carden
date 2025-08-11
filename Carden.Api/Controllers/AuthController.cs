@@ -32,7 +32,8 @@ public class AuthController(IAuthService authService) : ControllerBase
                 Error = new ErrorDetails { Code = "500", Message = "Internal server error" },
                 Success = false,
                 Timestamp = DateTime.UtcNow
-            });        }
+            });
+        }
     }
 
     [HttpPost("login")]
@@ -51,7 +52,8 @@ public class AuthController(IAuthService authService) : ControllerBase
                 Error = new ErrorDetails { Code = "500", Message = "Internal server error" },
                 Success = false,
                 Timestamp = DateTime.UtcNow
-            });        }
+            });
+        }
     }
 
     [Authorize]
