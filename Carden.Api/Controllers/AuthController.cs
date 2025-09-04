@@ -19,119 +19,78 @@ public class AuthController(IAuthService authService) : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] UserRegistrationDto userRegistrationDto)
     {
-        try
-        {
-            var result = await _authService.Register(userRegistrationDto);
-            return result.ToCreatedResult();
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse
-            {
-                Error = new ErrorDetails { Code = "500", Message = "Internal server error" },
-                Success = false,
-                Timestamp = DateTime.UtcNow
-            });
-        }
+        var result = await _authService.Register(userRegistrationDto);
+        return result.ToCreatedResult();
     }
 
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] UserLoginDto userLoginDto)
     {
-        try
-        {
-            var result = await _authService.Login(userLoginDto);
-            return result.ToActionResult();
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse
-            {
-                Error = new ErrorDetails { Code = "500", Message = "Internal server error" },
-                Success = false,
-                Timestamp = DateTime.UtcNow
-            });
-        }
+        var result = await _authService.Login(userLoginDto);
+        return result.ToActionResult();
     }
 
     [Authorize]
     [HttpPost("refresh")]
     public async Task<IActionResult> Refresh()
     {
-        try
-        {
-            // Get the userId through the "sub" claim directly
-            var userId = User.FindFirst("sub")?.Value;
-            if (userId is null) return Unauthorized("Invalid access token");
+        // Get the userId through the "sub" claim directly
+        var userId = User.FindFirst("sub")?.Value;
+        if (userId is null) return Unauthorized("Invalid access token");
 
-            var refreshToken = Request.Headers["x-refresh"].ToString();
-            if (refreshToken.Length < 1) return Unauthorized("Invalid refresh token");
+        var refreshToken = Request.Headers["x-refresh"].ToString();
+        if (refreshToken.Length < 1) return Unauthorized("Invalid refresh token");
 
-            var result = await _authService.Refresh(userId, refreshToken);
-            return result.ToActionResult();
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse
-            {
-                Error = new ErrorDetails { Code = "500", Message = "Internal server error" },
-                Success = false,
-                Timestamp = DateTime.UtcNow
-            });
-        }
+        var result = await _authService.Refresh(userId, refreshToken);
+        return result.ToActionResult();
     }
 
     [Authorize]
     [HttpDelete("logout")]
     public async Task<IActionResult> Logout()
     {
-        try
+        var refreshCookie = Request.Cookies["refresh"];
+
+        var userId = User.FindFirst("sub")?.Value;
+        if (userId is null)
         {
-            var refreshCookie = Request.Cookies["refresh"];
-
-            var userId = User.FindFirst("sub")?.Value;
-            if (userId is null)
+            return Unauthorized(new ApiResponse
             {
-                return Unauthorized(new ApiResponse
-                {
-                    Success = false,
-                    Error = new ErrorDetails
-                    {
-                        Code = "401",
-                        Message = "User is logged out already"
-                    }
-                });
-            }
-
-            if (refreshCookie is null)
-            {
-                return BadRequest(new ApiResponse
-                {
-                    Success = false,
-                    Error = new ErrorDetails
-                    {
-                        Code = "400",
-                        Message = "Refresh token required"
-                    }
-                });
-            }
-
-            var result = await _authService.Logout(userId, refreshCookie);
-            return result.ToNoContentResult();
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse
-            {
-                Error = new ErrorDetails { Code = "500", Message = "Internal server error" },
                 Success = false,
-                Timestamp = DateTime.UtcNow
+                Error = new ErrorDetails
+                {
+                    Code = "401",
+                    Message = "User is logged out already"
+                }
             });
         }
+
+        if (refreshCookie is null)
+        {
+            return BadRequest(new ApiResponse
+            {
+                Success = false,
+                Error = new ErrorDetails
+                {
+                    Code = "400",
+                    Message = "Refresh token required"
+                }
+            });
+        }
+
+        var result = await _authService.Logout(userId, refreshCookie);
+        return result.ToNoContentResult();
+    }
+
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword()
+    {
+        throw new NotImplementedException();
+    }
+
+    public async Task<IActionResult> ResetPassword()
+    {
+        throw new NotImplementedException();
     }
 
 

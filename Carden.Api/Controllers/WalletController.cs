@@ -20,7 +20,7 @@ public class WalletController(IWalletService walletService): ControllerBase
         return result.ToCreatedResult();
     }
 
-    [HttpGet("{user_id:guid}")]
+    [HttpGet]
     public async Task<IActionResult> GetSingleWallet()
     {
         var userId = User.FindFirst("sub")?.Value;

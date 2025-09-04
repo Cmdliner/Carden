@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using Asp.Versioning;
 using Carden.Api.Filters;
+using Carden.Api.Middlewares;
 using Carden.Api.Utils;
 using FluentValidation;
 using FluentValidation.AspNetCore;
@@ -34,18 +35,18 @@ builder.Services.AddCors(options =>
     });
 });
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services
-.AddApiVersioning(options =>
-{
-    options.DefaultApiVersion = new ApiVersion(1);
-    options.ReportApiVersions = true;
-    options.AssumeDefaultVersionWhenUnspecified = true;
-    options.ApiVersionReader = ApiVersionReader.Combine(
-        new UrlSegmentApiVersionReader(),
-        new HeaderApiVersionReader("X-Api-Version"));
-})
-.AddMvc()
+    .AddApiVersioning(options =>
+    {
+        options.DefaultApiVersion = new ApiVersion(1);
+        options.ReportApiVersions = true;
+        options.AssumeDefaultVersionWhenUnspecified = true;
+        options.ApiVersionReader = ApiVersionReader.Combine(
+            new UrlSegmentApiVersionReader(),
+            new HeaderApiVersionReader("X-Api-Version"));
+    })
+    .AddMvc()
     .AddApiExplorer(options =>
     {
         options.GroupNameFormat = "'v'V";
@@ -65,8 +66,8 @@ builder.Services.AddScoped<IExpenseItemService, ExpenseItemService>();
 
 
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
-builder.Services.AddControllers(options => { options.Filters.Add<ValidationFilter>(); });
-builder.Services.Configure<ApiBehaviorOptions>(options => { options.SuppressModelStateInvalidFilter = true; });
+builder.Services.AddControllers(options => options.Filters.Add<ValidationFilter>());
+builder.Services.Configure<ApiBehaviorOptions>(options => options.SuppressModelStateInvalidFilter = true);
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddFluentValidationClientsideAdapters();
 builder.Services.AddValidatorsFromAssemblyContaining<UserRegistrationValidator>();
@@ -97,7 +98,7 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
-
+app.UseGlobalExceptionHandler();
 app.UseHttpsRedirection();
 app.UseCors(myAllowedOrigins);
 app.UseAuthentication();
