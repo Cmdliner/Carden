@@ -1,0 +1,6 @@
+@Carden.Api_HostAddress = http://localhost:5219
+
+GET {{Carden.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
