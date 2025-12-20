@@ -7,4 +7,15 @@ public class AppDbContext(DbContextOptions<AppDbContext> options): DbContext(opt
     public DbSet<User> Users { get; set; }
     
     public DbSet<Otp> Otps { get; set; }
-}
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+        
+        modelBuilder.Entity<Otp>()
+            .Property(o => o.Kind)
+            .HasConversion<string>()
+            .HasMaxLength(25);
+        
+    }
+} 

@@ -30,9 +30,9 @@ public class AuthController(IAuthService authService) : ControllerBase
     }
 
     [HttpPost("forgot-password")]
-    public async Task<IActionResult> RequestPasswordReset(string email)
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest forgotPasswordRequest)
     {
-        await _authService.RequestPasswordReset(email);
+        await _authService.ForgotPassword(forgotPasswordRequest.Email);
         return Ok(new { Success = true, Message = "Password reset instructions have been snt to your email" });
     }
 
@@ -67,6 +67,7 @@ public record LoginRequest(string Email, string Password);
 
 public record RegisterRequest(string Username, string Email, string Password);
 
+public record ForgotPasswordRequest(string Email);
 public record VerifyPasswordResetRequest(string Email, string Code);
 
 public record ResetPasswordRequest(string Password);

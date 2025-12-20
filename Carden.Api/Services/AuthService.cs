@@ -8,7 +8,7 @@ public interface IAuthService
 {
     Task<User> Register(RegisterRequest registerRequest);
     Task<string> Login(LoginRequest loginRequest);
-    Task RequestPasswordReset(string email);
+    Task ForgotPassword(string email);
     Task<bool> VerifyPasswordReset(VerifyPasswordResetRequest verifyPasswordResetRequest);
 
     Task ResetPassword(string passwordResetToken, string newPassword);
@@ -51,7 +51,7 @@ public class AuthService(AppDbContext context, IPasswordHelper passwordHelper) :
         return authToken;
     }
 
-    public async Task RequestPasswordReset(string email)
+    public async Task ForgotPassword(string email)
     {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         if (user is null) return;
@@ -62,7 +62,7 @@ public class AuthService(AppDbContext context, IPasswordHelper passwordHelper) :
             UserId = user.Id,
             Kind = OtpKind.PasswordReset,
             Code = new Random().Next(100_000, 999_999).ToString(),
-            ExpiresAt = new DateTime().AddMinutes(5)
+            ExpiresAt = new DateTime().AddMinutes(5).ToUniversalTime()
         };
         await _context.Otps.AddAsync(newOtp);
         await _context.SaveChangesAsync();

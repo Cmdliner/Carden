@@ -6,19 +6,20 @@ namespace Carden.Api.Models;
 public class Otp
 {
     [Key]
-    public Guid Id { get; set; }
+    public Guid Id { get; init; }
     
     [Required(ErrorMessage = "Please enter a valid Otp Token")]
-    public required string Code { get; set; }
+    [MaxLength(10)]
+    public required string Code { get; init; }
     
     [Required]
-    public Guid UserId { get; set; }
+    public Guid UserId { get; init; }
     
     [Required]
-    public OtpKind Kind { get; set; }
+    public OtpKind Kind { get; init; }
     
     [Required]
-    public DateTime ExpiresAt { get; set; }
+    public DateTime ExpiresAt { get; init; }
 }
 
 public enum OtpKind
