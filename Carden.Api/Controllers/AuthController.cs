@@ -21,7 +21,7 @@ public class AuthController(IAuthService authService) : ControllerBase
         try
         {
             var authToken = await _authService.Login(loginRequest);
-            return Ok(new { Success = true, Message = "User created successfully", AuthToken = authToken });
+            return Ok(new { Success = true, Message = "User login successfully", AuthToken = authToken });
         }
         catch (BadHttpRequestException e)
         {
@@ -30,7 +30,7 @@ public class AuthController(IAuthService authService) : ControllerBase
     }
 
     [HttpPost("forgot-password")]
-    public async Task<IActionResult> RequestPasswordReset(string email) 
+    public async Task<IActionResult> RequestPasswordReset(string email)
     {
         await _authService.RequestPasswordReset(email);
         return Ok(new { Success = true, Message = "Password reset instructions have been snt to your email" });
@@ -41,7 +41,7 @@ public class AuthController(IAuthService authService) : ControllerBase
     {
         var isValidOtp = await _authService.VerifyPasswordReset(verifyPasswordResetRequest);
         if (!isValidOtp) return BadRequest(new { Success = false, Message = "Invalid Otp" });
-        
+
         return Ok(new { Success = true, Message = "Otp verified", OtpToken = string.Empty });
     }
 
