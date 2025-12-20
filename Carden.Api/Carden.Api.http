@@ -1,6 +1,5 @@
-@Carden.Api_HostAddress = http://localhost:5219
-
-GET {{Carden.Api_HostAddress}}/weatherforecast/
+@Carden.Api_HostAddress = https://localhost:7158
+POST https://localhost:7158/api/v1/auth/register
 Accept: application/json
-
+Content-Type: application/json
 ###
