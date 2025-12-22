@@ -1,0 +1,7 @@
+﻿services:
+  carden.api:
+    image: carden.api
+    build:
+      context: .
+      dockerfile: Carden.Api/Dockerfile
+
