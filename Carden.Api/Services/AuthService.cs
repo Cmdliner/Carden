@@ -6,27 +6,28 @@ namespace Carden.Api.Services;
 
 public interface IAuthService
 {
-    Task<User> Register(RegisterRequest registerRequest);
-    Task<string> Login(LoginRequest loginRequest);
+    Task<User> Register(RegisterDto registerDto);
+    Task<ValueTuple<string, string>> Login(LoginDto loginDto);
     Task ForgotPassword(string email);
-    Task<bool> VerifyPasswordReset(VerifyPasswordResetRequest verifyPasswordResetRequest);
+    Task<ValueTuple<bool, string>> VerifyPasswordReset(VerifyPasswordResetDto verifyPasswordResetDto);
 
     Task ResetPassword(string passwordResetToken, string newPassword);
 }
 
-public class AuthService(AppDbContext context, IPasswordHelper passwordHelper) : IAuthService
+public class AuthService(AppDbContext context, IPasswordHelper passwordHelper, IJwtHelper jwtHelper) : IAuthService
 {
     private readonly AppDbContext _context = context;
     private readonly IPasswordHelper _passwordHelper = passwordHelper;
+    private readonly IJwtHelper _jwtHelper = jwtHelper;
 
-    public async Task<User> Register(RegisterRequest registerRequest)
+    public async Task<User> Register(RegisterDto registerDto)
     {
         var newUser = new User
         {
             Id = Guid.NewGuid(),
-            Username = registerRequest.Username,
-            Email = registerRequest.Email,
-            PasswordHash = _passwordHelper.GenerateHash(registerRequest.Password),
+            Username = registerDto.Username,
+            Email = registerDto.Email,
+            PasswordHash = _passwordHelper.GenerateHash(registerDto.Password),
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -36,19 +37,33 @@ public class AuthService(AppDbContext context, IPasswordHelper passwordHelper) :
         return newUser;
     }
 
-    public async Task<string> Login(LoginRequest loginRequest)
+    public async Task<(string, string)> Login(LoginDto loginDto)
     {
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == loginRequest.Email);
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == loginDto.Email);
         if (user is null) throw new BadHttpRequestException("Invalid credentials");
 
-        var passwordsMatch = _passwordHelper.Verify(loginRequest.Password, user.PasswordHash);
+        var passwordsMatch = _passwordHelper.Verify(loginDto.Password, user.PasswordHash);
         if (!passwordsMatch) throw new BadHttpRequestException("Invalid credentials");
 
         user.LastLogin = DateTime.UtcNow;
-        await _context.SaveChangesAsync(); 
+        await _context.SaveChangesAsync();
 
-        var authToken = string.Empty;
-        return authToken;
+        var accessToken = _jwtHelper.GenerateToken(user.Id);
+
+        var refreshToken = new AuthToken
+        {
+            Id = Guid.NewGuid(),
+            UserId = user.Id,
+            Hash = _passwordHelper.GenerateHash(accessToken), // !todo => Update to use different hasher
+            TokenType = TokenType.Refresh,
+            CreatedAtUtc = DateTimeOffset.UtcNow,
+            ExpiresAtUtc = DateTimeOffset.UtcNow.AddMinutes(30),
+        };
+        await _context.AuthTokens.AddAsync(refreshToken);
+
+        await _context.SaveChangesAsync();
+
+        return (accessToken, refreshToken.Hash);
     }
 
     public async Task ForgotPassword(string email)
@@ -71,23 +86,43 @@ public class AuthService(AppDbContext context, IPasswordHelper passwordHelper) :
         Console.WriteLine($"Otp => {newOtp.Code}");
     }
 
-    public async Task<bool> VerifyPasswordReset(VerifyPasswordResetRequest verifyPasswordResetRequest)
+    public async Task<(bool, string)> VerifyPasswordReset(VerifyPasswordResetDto verifyPasswordResetDto)
     {
-        var (email, code) = verifyPasswordResetRequest;
+        var (email, code) = verifyPasswordResetDto;
 
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-        if (user is null) return false;
+        if (user is null) return (false, string.Empty);
 
         var otp = await _context.Otps.FirstOrDefaultAsync(o => o.Code == code && o.UserId == user.Id);
-        return otp is not null || otp?.ExpiresAt > DateTime.UtcNow;
+        if (otp is null || otp.ExpiresAt < DateTime.UtcNow) return (false, string.Empty);
+
+        var passwordResetToken = new AuthToken
+        {
+            Id = Guid.NewGuid(),
+            UserId = user.Id,
+            TokenType = TokenType.PasswordReset,
+            CreatedAtUtc = DateTimeOffset.UtcNow,
+            ExpiresAtUtc = DateTimeOffset.UtcNow.AddMinutes(10),
+            Hash = _passwordHelper.GenerateHash(user.Id.ToString()),
+        };
+        await _context.AuthTokens.AddAsync(passwordResetToken);
+        await _context.SaveChangesAsync();
+
+        return (true, passwordResetToken.Hash);
     }
 
     public async Task ResetPassword(string passwordResetToken, string newPassword)
     {
-        // ! todo => Verify the password reset token and extract the userId from it
-        var userId = Guid.NewGuid();
-
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        var dbToken = await _context.AuthTokens.FirstOrDefaultAsync(t => t.Hash == passwordResetToken);
+        if (dbToken is null || dbToken.RevokedAtUtc is not null || dbToken.ExpiresAtUtc < DateTimeOffset.UtcNow)
+        {
+            throw new BadHttpRequestException("Invalid credentials");
+        }
+        
+        dbToken.RevokedAtUtc =  DateTimeOffset.UtcNow;
+        await _context.SaveChangesAsync();
+        
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == dbToken.UserId);
         if (user is null) throw new BadHttpRequestException("Invalid credentials");
 
         user.PasswordHash = _passwordHelper.GenerateHash(newPassword);

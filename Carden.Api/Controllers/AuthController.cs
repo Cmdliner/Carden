@@ -9,19 +9,28 @@ public class AuthController(IAuthService authService) : ControllerBase
     private readonly IAuthService _authService = authService;
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register(RegisterRequest registerRequest)
+    public async Task<IActionResult> Register(RegisterDto registerDto)
     {
-        var user = await _authService.Register(registerRequest);
+        var user = await _authService.Register(registerDto);
         return Created(nameof(Register), new { Success = true, Message = "User created successfully" });
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login(LoginRequest loginRequest)
+    public async Task<IActionResult> Login(LoginDto loginDto)
     {
         try
         {
-            var authToken = await _authService.Login(loginRequest);
-            return Ok(new { Success = true, Message = "User login successfully", AuthToken = authToken });
+            var (accessToken, refreshToken) = await _authService.Login(loginDto);
+            return Ok(new
+            {
+                Success = true,
+                Message = "User login successfully",
+                Data = new
+                {
+                    AccessToken = accessToken,
+                    RefreshToken = refreshToken
+                }
+            });
         }
         catch (BadHttpRequestException e)
         {
@@ -30,29 +39,29 @@ public class AuthController(IAuthService authService) : ControllerBase
     }
 
     [HttpPost("forgot-password")]
-    public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest forgotPasswordRequest)
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordDto forgotPasswordDto)
     {
-        await _authService.ForgotPassword(forgotPasswordRequest.Email);
+        await _authService.ForgotPassword(forgotPasswordDto.Email);
         return Ok(new { Success = true, Message = "Password reset instructions have been snt to your email" });
     }
 
     [HttpPost("verify-password-reset")]
-    public async Task<IActionResult> VerifyPasswordReset(VerifyPasswordResetRequest verifyPasswordResetRequest)
+    public async Task<IActionResult> VerifyPasswordReset(VerifyPasswordResetDto verifyPasswordResetDto)
     {
-        var isValidOtp = await _authService.VerifyPasswordReset(verifyPasswordResetRequest);
+        var (isValidOtp, passwordResetHash) = await _authService.VerifyPasswordReset(verifyPasswordResetDto);
         if (!isValidOtp) return BadRequest(new { Success = false, Message = "Invalid Otp" });
 
-        return Ok(new { Success = true, Message = "Otp verified", OtpToken = string.Empty });
+        return Ok(new { Success = true, Message = "Otp verified", OtpToken = passwordResetHash });
     }
 
     [HttpPost("reset-password")]
-    public async Task<IActionResult> ResetPassword(ResetPasswordRequest resetPasswordRequest)
+    public async Task<IActionResult> ResetPassword(ResetPasswordDto resetPasswordDto)
     {
         try
         {
             var passwordResetToken = HttpContext.Request.Headers["X-Password-Reset"].ToString();
 
-            await _authService.ResetPassword(passwordResetToken, resetPasswordRequest.Password);
+            await _authService.ResetPassword(passwordResetToken, resetPasswordDto.Password);
 
             return Ok(new { Success = true, Message = "Password has been reset successfully" });
         }
@@ -63,11 +72,12 @@ public class AuthController(IAuthService authService) : ControllerBase
     }
 }
 
-public record LoginRequest(string Email, string Password);
+public record LoginDto(string Email, string Password);
 
-public record RegisterRequest(string Username, string Email, string Password);
+public record RegisterDto(string Username, string Email, string Password);
 
-public record ForgotPasswordRequest(string Email);
-public record VerifyPasswordResetRequest(string Email, string Code);
+public record ForgotPasswordDto(string Email);
 
-public record ResetPasswordRequest(string Password);
+public record VerifyPasswordResetDto(string Email, string Code);
+
+public record ResetPasswordDto(string Password);
