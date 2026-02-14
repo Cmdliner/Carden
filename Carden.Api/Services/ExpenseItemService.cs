@@ -70,4 +70,9 @@ public class ExpenseItemService(AppDbContext context) : IExpenseItemService
             .OrderBy(e => e.Priority)
             .ToListAsync();
     }
+
+    private async Task Reprioritize()
+    {
+        await Task.Delay(1000);
+    }
 }

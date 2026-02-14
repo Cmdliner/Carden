@@ -10,7 +10,7 @@ public class SnakeCaseNamingPolicy: JsonNamingPolicy
         var builder = new StringBuilder();
         foreach (var c in name)
         {
-            if(char.IsUpper(c) && builder.Length > 0) builder.Append('_');
+            if(char.IsUpper(c) &&  builder.Length > 0) builder.Append('_');
             builder.Append(char.ToLower(c));
         }
         return builder.ToString();      
